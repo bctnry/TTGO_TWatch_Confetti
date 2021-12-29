@@ -2,12 +2,20 @@
 #include <soc/rtc.h>
 #include "globalState.h"
 
+#include "SPIFFS.h"
+
+#define FORMAT_SPIFFS_IF_FAILED true
+
 TTGOClass* ttgo;
 bool irq = 0;
 char buf[128];
 uint32_t targetTime = 0;
 
 void updateTitleUI(const char* string);
+void clearMainUI();
+
+#include"common.h"
+#include"icons.h"
 
 // Init UI
 void updateInitUI() {
@@ -15,6 +23,18 @@ void updateInitUI() {
     ttgo->tft->setCursor(0, 0);
     ttgo->tft->setTextColor(TFT_WHITE, TFT_BLACK);
     ttgo->tft->println("TTGO_TWatch_Confetti");
+}
+
+void updateTitleUI(const char* string) {
+    ttgo->tft->fillRect(0, 16, 240, 16, TFT_BLACK);
+    ttgo->tft->setTextFont(2);
+    ttgo->tft->setTextColor(TFT_WHITE, TFT_BLACK);
+    ttgo->tft->setCursor(0, 16);
+    ttgo->tft->print(string);
+}
+
+void clearMainUI() {
+    ttgo->tft->fillRect(0, 32, 240, 240-32, TFT_BLACK);
 }
 
 
@@ -47,12 +67,6 @@ void updateTimeUI() {
     ttgo->tft->println(buf);
 }
 
-void updateTitleUI(const char* string) {  
-    ttgo->tft->setTextFont(2);
-    ttgo->tft->setCursor(0, 16);
-    ttgo->tft->print(string);
-}
-
 // Setup
 
 void setup() {
@@ -76,6 +90,12 @@ void setup() {
     updateInitUI();
     updateTitleUI("Version 2021.12.29");
     updateTimeUI();
+
+    if (!SPIFFS.begin(FORMAT_SPIFFS_IF_FAILED)) {
+      ttgo->tft->setTextFont(2);
+      ttgo->tft->setCursor(0, 32);
+      ttgo->tft->println("SPIFFS Mount Failed");
+    }    
 }
 
 #include"procedureId.h"
@@ -83,14 +103,20 @@ void setup() {
 #include"menu.h"
 #include"setTime.h"
 #include"setDate.h"
+#include"spiffs.h"
 
 
 void dispatchSetScreen() {
     switch (requested) {
-        case MENU: requested = 0; enterMenuScreen(); break;
-        case SET_TIME: requested = 0; enterSetTimeScreen(); break;
-        case SET_DATE: requested = 0; enterSetDateScreen(); break;
-        default: break;
+        case MENU: requested = 1; enterMenuScreen(); break;
+        case CLOCK: requested = 1; break;
+        case SET_TIME: requested = 1; enterSetTimeScreen(); break;
+        case SET_DATE: requested = 1; enterSetDateScreen(); break;
+        case SPIFFS_FM: requested = 1; enterSPIFFSScreen(); break;
+        default: {
+          // no corresponding app.
+          requested = 1; break;
+        }
     }
 }
 
@@ -98,14 +124,14 @@ void loop() {
     if (targetTime < millis()) {
         targetTime = millis() + 1000;
         updateInitUI();
-        updateTitleUI("Version 2021.12.29");
+        updateTitleUI("Version 2021.12.30");
         updateTimeUI();
     }
 
     int16_t x, y;
     if (ttgo->getTouch(x, y)) {
-        requested = 1;
-        while (requested) {
+        requested = 0;
+        while (requested != CLOCK) {
             while (ttgo->getTouch(x, y)) { }
             dispatchSetScreen();
         }

@@ -23,39 +23,37 @@ void updateSetDateUI() {
     ttgo->tft->print("+");
     ttgo->tft->setCursor(200, 32+96);
     ttgo->tft->print("-");
-
-    ttgo->tft->setCursor(0, 32+96+96-16);
-    ttgo->tft->print("Cancel");
-    ttgo->tft->setCursor(104, 32+96+96-16);
-    ttgo->tft->print("Time");
-    ttgo->tft->setCursor(200-16, 32+96+96-16);
-    ttgo->tft->print("OK");
+    
+    ttgo->tft->drawBitmap(30-12, 240-24, EXIT_24, 24, 24, TFT_WHITE);
+    ttgo->tft->drawBitmap(150-12, 240-24, TIME_24, 24, 24, TFT_WHITE);
+    ttgo->tft->drawBitmap(210-12, 240-24, DIAMOND_24, 24, 24, TFT_WHITE);
 }
 uint8_t normal_month[13] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 bool isLeapYear(uint8_t x) {
     return (x % 100 == 0? x % 400 == 0 : x % 4 == 0);
 }
 void enterSetDateScreen() {
-    ttgo->tft->fillScreen(TFT_BLACK);
+    clearMainUI();
     updateSetDateUI();
 
-    uint8_t field = 0;
     int16_t x, y;
     uint8_t key = 10;
+    
     while (true) {
-        while (!ttgo->getTouch(x, y)) { }
+        waitTouchDown(x, y);
+        waitTouchUp(x, y);
 
 
         // Cancel button.
-        if (x < 80 && y > 240-32) { while (ttgo->getTouch(x, y)) { } requested = MENU; break; }
+        if (X_IN_FIRST_QUARTER(x) && y > 240-32) { requested = MENU; break; }
 
         // Time button.
-        if (x < 160 && y > 240-32) { while (ttgo->getTouch(x, y)) { } requested = SET_TIME; break; }
+        if (X_IN_THIRD_QUARTER(x) && y > 240-32) { requested = SET_TIME; break; }
         
         // OK button.
-        if (x > 160 && y > 240-32) {
-            while (ttgo->getTouch(x, y)) { }
-            ttgo->rtc->setDateTime(yyear, mmonth, dday, hh, mm, ss);
+        if (X_IN_FOURTH_QUARTER(x) && y > 240-32) {
+            RTC_Date tnow = ttgo->rtc->getDateTime();
+            ttgo->rtc->setDateTime(yyear, mmonth, dday, tnow.hour, tnow.minute, tnow.second);
             break;
         }
 
@@ -93,10 +91,8 @@ void enterSetDateScreen() {
         ttgo->tft->setTextFont(6);
         snprintf(buf, sizeof(buf), "%d%02d%02d", yyear, mmonth, dday);
         ttgo->tft->print(buf);
-        while (ttgo->getTouch(x, y)) { }
-        field++;
     }
     leave:
-    ttgo->tft->fillScreen(TFT_BLACK);
+    clearMainUI();
 }
 #endif
