@@ -6,6 +6,7 @@ Minimal watch program for TTGO TWatch 2020
 
 + Basic clock
 + Time/date settings
++ Numpad
 
 ## Road map
 

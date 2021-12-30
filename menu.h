@@ -1,7 +1,7 @@
 #ifndef CONFETTI_MENU
 #define CONFETTI_MENU
 
-uint8_t current_menu_selection = 2;
+uint8_t current_menu_selection = 1;
 // NOTE: base 1, [x, y)
 uint8_t menu_upperbound = 1;
 uint8_t menu_lowerbound = MIN(MAXIMUM_ID, 8);

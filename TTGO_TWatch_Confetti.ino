@@ -88,7 +88,7 @@ void setup() {
     ttgo->rtc->syncToSystem();
     targetTime = millis() + 1000;
     updateInitUI();
-    updateTitleUI("Version 2021.12.29");
+    updateTitleUI("Version 2021.12.31");
     updateTimeUI();
 
     if (!SPIFFS.begin(FORMAT_SPIFFS_IF_FAILED)) {
@@ -104,6 +104,7 @@ void setup() {
 #include"setTime.h"
 #include"setDate.h"
 #include"spiffs.h"
+#include"numpad.h"
 
 
 void dispatchSetScreen() {
@@ -113,6 +114,7 @@ void dispatchSetScreen() {
         case SET_TIME: requested = 1; enterSetTimeScreen(); break;
         case SET_DATE: requested = 1; enterSetDateScreen(); break;
         case SPIFFS_FM: requested = 1; enterSPIFFSScreen(); break;
+        case NUMPAD: requested = 1; enterNumPadScreen(); break;
         default: {
           // no corresponding app.
           requested = 1; break;
@@ -124,7 +126,7 @@ void loop() {
     if (targetTime < millis()) {
         targetTime = millis() + 1000;
         updateInitUI();
-        updateTitleUI("Version 2021.12.30");
+        updateTitleUI("Version 2021.12.31");
         updateTimeUI();
     }
 
